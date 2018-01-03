@@ -32,7 +32,7 @@ def login(user, passwd, wait=2):
         EC.visibility_of_element_located((By.CSS_SELECTOR, "li#name_area"))
     )
     print('loginstart')
-    driver.execute_script("loginStart()");
+    driver.execute_script("loginStrat()");
 
     _ = WebDriverWait(driver, wait).until(
         EC.visibility_of_element_located((By.CSS_SELECTOR, "input#id"))
@@ -52,7 +52,7 @@ def login(user, passwd, wait=2):
     return driver
 
 def book(driver, wait=10):
-    driver.execute_script("window.location.href = 'http://ticket.melon.com/performance/index.htm?prodId=201323'")
+    driver.execute_script("window.location.href = 'http://ticket.melon.com/performance/index.htm?prodId=201324'")
     print("location changed")
 
     _ = WebDriverWait(driver, wait).until(
@@ -76,8 +76,8 @@ def book(driver, wait=10):
 
 #    driver.execute_script("selectedBlock(this,'43','Floor,A','Floor','층','A','구역','SE0001')");
 #    driver.execute_script("selectedBlock(this,'331','Floor,스탠딩 가','Floor','층','스탠딩 가','구역','SE0001')");
-    driver.execute_script("selectedBlock(this,'331','Floor,스탠딩 다','Floor','층','스탠딩 다','구역','SE0001')");
- #   driver.execute_script("selectedBlock(this,'136','1,A','1','층','A','구역','SE0001')");
+#    driver.execute_script("selectedBlock(this,'331','Floor,스탠딩 다','Floor','층','스탠딩 다','구역','SE0001')");
+    driver.execute_script("selectedBlock(this,'136','1,A','1','층','A','구역','SE0001')");
 
     trying = 0;
     while find_and_select_seats(driver, 0, wait):
@@ -97,15 +97,6 @@ def reload_schedule(driver, wait=0.1):
         return False
 
     driver.execute_script(simulate_click, driver.find_element_by_id("btnReloadSchedule"))
-
-    try:
-        _ = WebDriverWait(driver, 0.1).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "div#loadingLayer"))
-        )
-    except:
-        print("div#loadingLayer not found")
-        pass
-
     return True
 
 def check_alert_present(driver):
@@ -130,7 +121,8 @@ def find_and_select_seats(driver, count, wait):
             )
         except:
             print("loading layer was not dismissed in 10 seconds so it will be refreshed now")
-            return reload_schedule(driver)
+            if not reload_schedule(driver):
+                return True
 
         try:
             _ = WebDriverWait(driver, wait).until(
@@ -138,7 +130,8 @@ def find_and_select_seats(driver, count, wait):
             )
         except:
             print("any rect element not found so it will be refreshed now")
-            return reload_schedule(driver)
+            if not reload_schedule(driver):
+                return True
 
         available_seats = driver.find_elements_by_css_selector("div#ez_canvas rect[fill^='#b']")
         print(available_seats)
@@ -148,6 +141,7 @@ def find_and_select_seats(driver, count, wait):
                 print("seats are available!")
                 driver.execute_script(simulate_click, seat);
                 count = count + 1
+                break
 
         if count == 1:
             print('seats exist')
@@ -165,7 +159,7 @@ def find_and_select_seats(driver, count, wait):
                 print("No nextPayment element here")
                 count = 0
                 if not reload_schedule(driver):
-                    return False
+                    return True
 
             driver.execute_script("arguments[0].selectedIndex = arguments[0].length - 1;", driver.find_elements_by_css_selector("dd.price.wrap_sel > select"))
             driver.execute_script(simulate_click, driver.find_element_by_id('nextPayment'));
@@ -190,7 +184,7 @@ def find_and_select_seats(driver, count, wait):
             raw_input("Press Enter to continue...")
         else:
             if not reload_schedule(driver):
-                return False
+                return True
 
     return False
 
