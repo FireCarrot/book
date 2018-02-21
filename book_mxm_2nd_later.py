@@ -52,15 +52,15 @@ def login(user, passwd, wait=2):
     return driver
 
 def book(driver, wait=10):
-    driver.execute_script("window.location.href = 'http://ticket.melon.com/performance/index.htm?prodId=201323'")
+    driver.execute_script("window.location.href = 'http://ticket.melon.com/performance/index.htm?prodId=201473'")
     print("location changed")
 
     _ = WebDriverWait(driver, wait).until(
         EC.visibility_of_element_located((By.CSS_SELECTOR, "button.button.btColorGreen"))
     )
 
-    driver.execute_script(simulate_click, driver.find_elements_by_css_selector('li.item_date')[1])
-    driver.execute_script(simulate_click, driver.find_elements_by_css_selector('li.item_time.first')[0])
+    driver.execute_script(simulate_click, driver.find_elements_by_css_selector('li.item_date.first')[0])
+    driver.execute_script(simulate_click, driver.find_elements_by_css_selector('li.item_time')[1])
     driver.execute_script(simulate_click, driver.find_elements_by_css_selector('button.button.btColorGreen')[0])
 #    driver.execute_script("document.oneForm.action = 'https://ticket.melon.com/reservation/popup/onestop.htm'; document.oneForm.target=''; document.oneForm.prodId.value = 201323; document.oneForm.pocCode.value='SC0002'; document.oneForm.scheduleNo.value=100001; document.oneForm.sellTypeCode.value='ST0001'; document.oneForm.tYn.value='Y'; document.oneForm.chk.value=encodeURIComponent(sessionKey); document.oneForm.netfunnel_key.value=':key=91E7B7437A0A6BDC88165C6699E69D015E9771A3C9B3FDABA73958FD409871F357DA86B3C40D2427CAD3661CA489CBCE93707968F538F191F9A4D7A8217D18F9FA538DA057289C4BE49E725524226633233C1DA9524C86E1BA645DCF257E26639C8193E3044FDD29871DD04FFF86553D74696F6E2C302C332C312C30&'; document.oneForm.submit();")
 
@@ -75,10 +75,9 @@ def book(driver, wait=10):
         )
 
 #    driver.execute_script("selectedBlock(this,'43','Floor,A','Floor','층','A','구역','SE0001')");
-#    driver.execute_script("selectedBlock(this,'62','1,B1','1','층','B1','구역','SE0001')");
-    driver.execute_script("selectedBlock(this,'73','1,D1','1','층','D1','구역','SE0001')");
+#    driver.execute_script("selectedBlock(this,'331','Floor,스탠딩 가','Floor','층','스탠딩 가','구역','SE0001')");
 #    driver.execute_script("selectedBlock(this,'331','Floor,스탠딩 다','Floor','층','스탠딩 다','구역','SE0001')");
-#    driver.execute_script("selectedBlock(this,'136','1,A','1','층','A','구역','SE0001')");
+    driver.execute_script("selectedBlock(this,'36','1,C','1','층','C','열','SE0001')");
 
     trying = 0;
     while find_and_select_seats(driver, 0, wait):
