@@ -23,7 +23,7 @@ def found_window(name):
             return True
     return predicate
 
-def login(user, passwd, wait=2):
+def login(user, passwd, wait=10):
     options = webdriver.ChromeOptions();
     options.add_argument("--incognito");
     options.add_argument("--disable-popup-blocking");
@@ -32,24 +32,23 @@ def login(user, passwd, wait=2):
 #    driver.maximize_window()
     driver.get("http://ticket.yes24.com/Pages/Perf/Detail/DetailSpecial.aspx?IdPerf=30728")
 
+#    while EC.visibility_of_element_located((By.CSS_SELECTOR, "body > div.errorWrap")):
+#        driver.implicitly_wait(30)
+#        driver.get("http://ticket.yes24.com/Pages/Perf/Detail/DetailSpecial.aspx?IdPerf=30728")
+
     raw_input("Please login and go to the booking page popped up...")
     tryBooking(driver, wait)
 
 def tryBooking(driver, wait):
-    if (check_alert_present(driver)):
-    	raw_input("Please check pop up blocking option and press enter...")
-	driver.execute_script("fnNormalBooking()")
-
     _ = WebDriverWait(driver, wait).until(found_window("INIpayStd_Return"))
-
-    raw_input("found window")
 
     _ = WebDriverWait(driver, wait).until(
             EC.visibility_of_element_located((By.CSS_SELECTOR, "div#calendar.calendar")))
 
     driver.execute_script("fdc_CalDateClick(\"2018-08-29\")")
 #    driver.execute_script(simulate_click, driver.find_elements_by_css_selector('a.dcursor')[0])
-    raw_input("select date")
+    _ = WebDriverWait(driver, wait).until(
+            EC.visibility_of_element_located((By.CSS_SELECTOR, "#ulTime > li")))
 #    driver.execute_script('fdc_CalDateClick("2018-08-29")');
     driver.execute_script("fdc_ChoiceSeat();")
 
@@ -73,24 +72,58 @@ def find_and_select_seats(driver, count, wait):
     while (count == 0):
         try:
             _ = WebDriverWait(driver, wait).until(
-                EC.visibility_of_element_located((By.CSS_SELECTOR, "div.s13[title^='1']")))
+                EC.visibility_of_element_located((By.CSS_SELECTOR, "div[class^='s'][id^='t'][title^='1']")))
         except:
             print("any desired seat not found so reload seats...")
             return reload_seats(driver, wait)
 
-        available_seats = driver.find_elements_by_css_selector("div.s13[title^='1']")
+        available_seats = driver.find_elements_by_css_selector("div[class^='s'][id^='t'][title^='1']")
         print(available_seats)
 
         for seat in available_seats:
             if count == 0:
                 print("seats are available!")
-                driver.execute_script(simulate_click, seat);
+                driver.execute_script(simulate_click, seat)
                 count = count + 1
 
         if count == 1:
             print('seats exist')
             driver.execute_script("ChoiceEnd()")
-            raw_input("choice!!!")
+
+            if check_alert_present(driver):
+                count = 0
+                if not reload_seats(driver, wait):
+                    return False
+                continue
+
+            _ = WebDriverWait(driver, wait).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, "div#StepCtrlBtn03")))
+
+            driver.execute_script("fdc_PromotionEnd()")
+            _ = WebDriverWait(driver, wait).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, "div#StepCtrlBtn04")))
+            driver.execute_script("fdc_DeliveryEnd()")
+
+            _ = WebDriverWait(driver, wait).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, "input#rdoPays22")))
+
+            driver.execute_script("fdc_PayMethodChange(document.getElementById('rdoPays22'))");
+            driver.execute_script("arguments[0].selectedIndex = 4;", driver.find_elements_by_css_selector("select#selBank"))
+
+            _ = WebDriverWait(driver, wait).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, "div#StepCtrlBtn05")))
+
+            driver.execute_script(simulate_click, driver.find_element_by_id('cbxCancelFeeAgree'))
+            driver.execute_script(simulate_click, driver.find_element_by_id('chkinfoAgree'))
+
+            driver.execute_script("fdc_PrePayCheck()")
+
+            while check_alert_present(driver):
+                text = raw_input("input the captchaText")
+                capcha = driver.find_element_by_id('captchaText')
+                capcha.send_keys(text)
+                driver.execute_script("fdc_PrePayCheck()")
+
         else:
             if not reload_seats(driver, wait):
                 return False
