@@ -7,6 +7,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import TimeoutException, UnexpectedAlertPresentException, NoSuchWindowException, ElementNotVisibleException
 import sys
+import Tkinter as tk
+import tkMessageBox
 
 from credential import Credential
 from simulate import simulate_click
@@ -46,7 +48,6 @@ def tryBooking(driver, wait):
             EC.visibility_of_element_located((By.CSS_SELECTOR, "div#calendar.calendar")))
 
     driver.execute_script("fdc_CalDateClick(\"2018-08-29\")")
-#    driver.execute_script(simulate_click, driver.find_elements_by_css_selector('a.dcursor')[0])
     _ = WebDriverWait(driver, wait).until(
             EC.visibility_of_element_located((By.CSS_SELECTOR, "#ulTime > li")))
 #    driver.execute_script('fdc_CalDateClick("2018-08-29")');
@@ -62,7 +63,7 @@ def tryBooking(driver, wait):
         return reload_page(driver, wait)
 
     trying = 0;
-    while find_and_select_seats(driver, 0, wait):
+    while find_and_select_seats(driver, 0, 5):
         trying += 1
         print("keep finding and selecting seats", trying)
 
@@ -71,13 +72,13 @@ def tryBooking(driver, wait):
 def find_and_select_seats(driver, count, wait):
     while (count == 0):
         try:
-            _ = WebDriverWait(driver, wait).until(
-                EC.visibility_of_element_located((By.CSS_SELECTOR, "div[class^='s'][id^='t'][title^='1']")))
+            _ = WebDriverWait(driver, 0.1).until(
+                EC.visibility_of_element_located((By.CSS_SELECTOR, "div[class^='s'][id^='t'][title*='A'],div[class^='s'][id^='t'][title*='B']")))
         except:
             print("any desired seat not found so reload seats...")
-            return reload_seats(driver, wait)
+            return reload_seats(driver, 0.1)
 
-        available_seats = driver.find_elements_by_css_selector("div[class^='s'][id^='t'][title^='1']")
+        available_seats = driver.find_elements_by_css_selector("div[class^='s'][id^='t'][title*='A'],div[class^='s'][id^='t'][title*='B']")
         print(available_seats)
 
         for seat in available_seats:
@@ -92,9 +93,14 @@ def find_and_select_seats(driver, count, wait):
 
             if check_alert_present(driver):
                 count = 0
-                if not reload_seats(driver, wait):
+                if not reload_seats(driver, 0.1):
                     return False
                 continue
+
+            raw_input("Found seat!!!")
+            root = tk.Tk()
+            root.withdraw()
+            tkMessageBox.showinfo('Found seat!!!!', 'Now time to pay, hurry up!!!!')
 
             _ = WebDriverWait(driver, wait).until(
                 EC.visibility_of_element_located((By.CSS_SELECTOR, "div#StepCtrlBtn03")))
@@ -125,7 +131,7 @@ def find_and_select_seats(driver, count, wait):
                 driver.execute_script("fdc_PrePayCheck()")
 
         else:
-            if not reload_seats(driver, wait):
+            if not reload_seats(driver, 0.1):
                 return False
 
 def reload_page(driver, wait):
